@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <task:annotation-driven />
+    <context:annotation-config />
+    <context:component-scan base-package="com.filelist.*" />
+
+    <mvc:annotation-driven>
+        <mvc:message-converters register-defaults="true">
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>text/plain;charset=UTF-8</value>
+                        <value>text/html;charset=UTF-8</value>
+                        <value>application/json;charset=UTF-8</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+
+    <bean id="localeResolver"
+          class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
+        <property name="defaultLocale" value="en" />
+    </bean>
+
+    <bean id="messageSource"
+          class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basename" value="classpath:messages" />
+        <property name="defaultEncoding" value="UTF-8" />
+    </bean>
+
+    <!-- <bean id="cookieResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver"> 
+    <property name="defaultLocale" value="en" /> <property name="cookieName" 
+    value="my-locale-cookie" /> <property name="cookieMaxAge" value="3600" /> 
+    </bean> -->
+
+    <mvc:interceptors>
+        <bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+            <property name="paramName" value="lang" />
+        </bean>
+    </mvc:interceptors>
+
+    <bean name="statusDetail" class="com.filelist.entity.StatusDetail">
+        <constructor-arg name="clientName" value="JobLeads" />
+    </bean>
+
+    <bean name="fileProperties" class="com.filelist.entity.FeedProperties">
+        <property name="feedDir"  value="C:/apache-tomcat-7.0.47/webapps/jobleadsfiles" />
+        <property name="feedExtension" value="xml" />
+        <property name="serverPath" value="/jobleadsfiles/" />
+        <property name="tagLadder" value="root/resultlist/job" />
+    </bean>
+
+    <bean class="com.filelist.utils.FileTypeFilter" name="xmlFileFilter" />
+    <bean name="feedDir" class="java.nio.file.Paths" factory-method="get">
+        <constructor-arg value="file:///C:/apache-tomcat-7.0.47/webapps/jobleadsfiles" />
+    </bean>
+    
+    <bean class="com.filelist.utils.FileConnection" name="fileConnection"  factory-method="getFileConnection" />
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+
+    <bean class="com.filelist.service.AbstractDirectoryService" abstract="true"  name="adw" />
+    <bean class="com.filelist.service.XMLDirectoryService" name="directoryService" parent="adw" />
+
+    <!-- <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"> 
+    <property name="exceptionMappings"> <props> <prop key="com.filelist.utils.exception.FileListException"> 
+    error </prop> </props> </property> <property name="defaultErrorView" value="error" 
+    /> </bean> -->
+</beans>

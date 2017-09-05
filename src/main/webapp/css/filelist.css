@@ -1,0 +1,92 @@
+body {
+    overflow-y: scroll;
+}
+
+table {
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+}
+
+th {
+    background: #D6F5F5;
+    text-align: center;
+}
+
+.dataTables_filter {
+    float: left;
+}
+
+.dataTables_filter input {
+    min-width: 350px;
+}
+
+.noWapColumn {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.rightAlign {
+    text-align: right;
+}
+
+#compList {
+    box-shadow: 4px 4px 4px grey;
+}
+
+.columnControl {
+    font-weight: bolder;
+}
+
+#compList_filter {
+    margin-left: 5px;
+}
+
+#compList_processing {
+    position: fixed;
+    width: 200px;
+    height: 80px;;
+}
+
+/* .dt-buttons {
+        padding-left: 50%;
+}
+
+#compList_length label {
+        padding-left: 50%;
+} */
+.navbar-default {
+    background-color: white;
+    border-color: transparent;
+}
+
+.navbar {
+    margin-bottom: 4px;
+    min-height: 36px;
+}
+
+.navbar-brand {
+    padding-bottom: 2px;
+    padding-top: 5px;
+}
+
+.navbar-nav>li>a {
+    padding-bottom: 2px;
+    padding-top: 5px;
+}
+
+.navbar-default .navbar-nav>.open>a, 
+.navbar-default .navbar-nav>.open>a:focus, 
+.navbar-default .navbar-nav>.open>a:hover {
+    background-color: white;
+}
+
+.circle {
+    float: right; 
+    border-radius : 8px;
+    width: 8px;
+    height: 8px;
+    background: silver;
+    margin-top: -20px;
+    border-radius: 8px;
+    cursor: pointer;
+}
