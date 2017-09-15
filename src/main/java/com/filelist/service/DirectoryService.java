@@ -6,23 +6,23 @@ import java.util.Map;
 
 public interface DirectoryService {
 
-	String	NEW_UPDATED_JOBS	= "new_updated";
-	String	NEW_JOBS_ONLY		= "only_new";
-	String	UPDATED_JOBS_ONLY	= "only_updated";
-	String	UNCHANGED_JOBS_ONLY	= "only_unchanged";
+    String NEW_UPDATED_JOBS = "new_updated";
+    String NEW_JOBS_ONLY = "only_new";
+    String UPDATED_JOBS_ONLY = "only_updated";
+    String UNCHANGED_JOBS_ONLY = "only_unchanged";
 
-	void init();
+    void init();
 
-	Map<Integer, List<FileDetail>> searchFiles(List<FileDetail> fileDetails, String searchText, int pageNumber, int length);
+    Map<Integer, List<FileDetail>> searchFiles(List<FileDetail> fileDetails, String searchText, int pageNumber, int length);
 
-	void removeFromMap(String fileName);
+    void removeFromMap(String fileName);
 
-	List<FileDetail> getFileDetails();
+    List<FileDetail> getFileDetails();
 
-	Map<String, FileDetail> getFileDetailMap();
+    Map<String, FileDetail> getFileDetailMap();
 
-	void addEditMap(String fileName, boolean update);
+    void addEditMap(String fileName, boolean update);
 
-	void generateFileDetail(boolean clean);
+    void generateFileDetail(boolean clean);
 
 }

@@ -27,5 +27,4 @@ public class FileListException extends RuntimeException {
     public String getMessage() {
         return message;
     }
-
 }
