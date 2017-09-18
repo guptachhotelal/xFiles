@@ -53,15 +53,15 @@
     </bean>
 
     <bean name="fileProperties" class="com.filelist.entity.FeedProperties">
-        <property name="feedDir"  value="C:/apache-tomcat-7.0.47/webapps/jobleadsfiles" />
+        <property name="feedDir"  value="C:/apache-tomcat-7.0.47/webapps/xmlFilesDirectory" />
         <property name="feedExtension" value="xml" />
-        <property name="serverPath" value="/jobleadsfiles/" />
+        <property name="serverPath" value="/xmlFilesDirectory/" />
         <property name="tagLadder" value="root/resultlist/job" />
     </bean>
 
     <bean class="com.filelist.utils.FileTypeFilter" name="xmlFileFilter" />
     <bean name="feedDir" class="java.nio.file.Paths" factory-method="get">
-        <constructor-arg value="file:///C:/apache-tomcat-7.0.47/webapps/jobleadsfiles" />
+        <constructor-arg value="file:///C:/apache-tomcat-7.0.47/webapps/xmlFilesDirectory" />
     </bean>
     
     <bean class="com.filelist.utils.FileConnection" name="fileConnection"  factory-method="getFileConnection" />
@@ -73,8 +73,14 @@
     <bean class="com.filelist.service.AbstractDirectoryService" abstract="true"  name="ads" />
     <bean class="com.filelist.service.XMLDirectoryService" name="directoryService" parent="ads" />
 
-    <!-- <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"> 
-    <property name="exceptionMappings"> <props> <prop key="com.filelist.utils.exception.FileListException"> 
-    error </prop> </props> </property> <property name="defaultErrorView" value="error" 
-    /> </bean> -->
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"> 
+        <property name="exceptionMappings"> 
+            <props> 
+                <prop key="com.filelist.utils.exception.FileListException"> 
+                    error </prop> 
+            </props> 
+        </property> 
+        <property name="defaultErrorView" value="error" 
+        /> 
+    </bean>
 </beans>
