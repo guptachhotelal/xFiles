@@ -48,6 +48,10 @@
         </bean>
     </mvc:interceptors>
 
+    <bean name="timeZoneOffset" class="com.filelist.entity.TimeZoneOffset">
+        <constructor-arg name="dayOffset" value="-1" />
+        <constructor-arg name="timeOffset" value="14.0" />
+    </bean>
     <bean name="statusDetail" class="com.filelist.entity.StatusDetail">
         <constructor-arg name="clientName" value="JobLeads" />
     </bean>

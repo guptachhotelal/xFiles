@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.filelist.entity.FileDetail;
 import com.filelist.entity.StatusDetail;
+import com.filelist.entity.TimeZoneOffset;
 import com.filelist.service.DirectoryService;
 import com.filelist.utils.FileComparator;
 import com.filelist.utils.exception.FileListException;
@@ -15,13 +16,11 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -44,9 +43,11 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 public class FileListController {
 
     private static final Logger LOGGER = LogManager.getLogger(FileListController.class.getName());
-
-    private static final SimpleDateFormat SDF = new SimpleDateFormat("EEEE, MMM dd hh:mm:ss a");
     private static boolean watching;
+
+    @Resource
+    private TimeZoneOffset timeZoneOffset;
+
     @Resource
     private StatusDetail statusDetail;
     @Resource
@@ -74,6 +75,8 @@ public class FileListController {
         int todaysJobCount = 0;
         int done = 0;
         int jobCount = 0;
+        int newJob = 0;
+        int updateJob = 0;
         int zeroCount = 0;
         int errorCount = 0;
 
@@ -85,16 +88,18 @@ public class FileListController {
         calendar.set(Calendar.MILLISECOND, 0);
         Date tDay = calendar.getTime();
 
-        calendar.add(Calendar.DATE, -1);
+        calendar.add(Calendar.DATE, timeZoneOffset.getDayOffset());
         Date pDay = calendar.getTime();
 
-        long cTime = cHour >= 14 ? tDay.getTime() : pDay.getTime();
+        long cTime = cHour >= timeZoneOffset.getTimeOffset() ? tDay.getTime() : pDay.getTime();
         LOGGER.info("Determing status details");
+        List<FileDetail> rList = new ArrayList<>();
         for (FileDetail fileDetail : fileDetails) {
             try {
                 File file = new File(fileDetail.getFilePath());
                 if (!file.exists()) {
-                    fileDetails.remove(fileDetail);
+                    //					fileDetails.remove(fileDetail);
+                    rList.add(fileDetail);
                     continue;
                 }
                 Path path = Paths.get(fileDetail.getFilePath());
@@ -102,6 +107,8 @@ public class FileListController {
                 long fileCreateTime = view.creationTime().to(TimeUnit.MILLISECONDS);
                 long lastModified = file.lastModified();
                 jobCount += fileDetail.getJobCount();
+                newJob += fileDetail.getNewJob();
+                updateJob += fileDetail.getUpdateJob();
                 if (fileDetail.getJobCount() == 0) {
                     ++zeroCount;
                 }
@@ -122,10 +129,14 @@ public class FileListController {
                 throw new FileListException(FileListException.stackTraceToString(e));
             }
         }
+        fileDetails.removeAll(rList);
         int total = fileDetails.size();
         LOGGER.info("Setting status details");
         statusDetail.setTaskCount(total);
         statusDetail.setJobCount(jobCount);
+        statusDetail.setNewJob(newJob);
+        statusDetail.setUpdateJob(updateJob);
+        statusDetail.setUnchangeJob(jobCount - newJob - updateJob);
         statusDetail.setDoneCount(done);
         statusDetail.setPendingCount(total - done);
         statusDetail.setZeroCount(zeroCount);
@@ -136,33 +147,6 @@ public class FileListController {
         map.addAttribute("lang", locale.getLanguage());
         LOGGER.info("Returning view name filelist.jsp");
         return "filelist";
-    }
-
-    @RequestMapping(value = "populateName.json", method = RequestMethod.POST)
-    public @ResponseBody
-    String populate(final HttpServletRequest request, final HttpServletResponse response) {
-        response.setContentType("application/json;charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        String prefix = request.getParameter("prefix") == null ? "" : request.getParameter("prefix").toLowerCase().trim();
-        try {
-            Map<String, List<String>> fileMap = new LinkedHashMap<>();
-            List<String> names = new ArrayList<>();
-            int counter = 0;
-            for (FileDetail fileDetail : directoryService.getFileDetails()) {
-                if (fileDetail.getTaskName().toLowerCase().contains(prefix)) {
-                    ++counter;
-                    names.add(fileDetail.getTaskName());
-                    if (counter == 10) {
-                        break;
-                    }
-                }
-            }
-            fileMap.put("filtered", names);
-            return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(fileMap);
-        } catch (JsonProcessingException e) {
-            LOGGER.info("Exception occured in method populate " + FileListException.stackTraceToString(e));
-            throw new FileListException(FileListException.stackTraceToString(e));
-        }
     }
 
     @RequestMapping(value = "fetchlist.json", method = RequestMethod.POST)
@@ -178,8 +162,8 @@ public class FileListController {
         int sortColumn = request.getParameter("order[0][column]") == null ? 1 : Integer.parseInt(request.getParameter("order[0][column]"));
         boolean isAsc = "asc".equals(request.getParameter("order[0][dir]"));
         try {
-            Map<String, Object> fileMap = new ConcurrentHashMap<>();
             ++dummyCounter;
+            Map<String, Object> fileMap = new ConcurrentHashMap<>();
             fileMap.put("draw", dummyCounter);
             fileMap.put("recordsTotal", fileDetails.size());
             Collections.sort(fileDetails, new FileComparator(sortColumn, isAsc));
@@ -251,4 +235,5 @@ public class FileListController {
         LOGGER.info("Returning view named filelist.jsp");
         return "redirect:filelist.htm";
     }
+
 }

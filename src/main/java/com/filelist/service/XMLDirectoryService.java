@@ -2,6 +2,7 @@ package com.filelist.service;
 
 import com.filelist.entity.FeedProperties;
 import com.filelist.entity.FileDetail;
+import com.filelist.entity.TimeZoneOffset;
 import com.filelist.utils.FileConnection;
 import com.filelist.utils.exception.FileListException;
 import java.io.File;
@@ -28,6 +29,8 @@ public class XMLDirectoryService extends AbstractDirectoryService {
     private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd");
 
     @Resource
+    private TimeZoneOffset timeZoneOffset;
+    @Resource
     private FilenameFilter xmlFileFilter;
     @Resource
     private FileConnection fileConnection;
@@ -36,7 +39,7 @@ public class XMLDirectoryService extends AbstractDirectoryService {
 
     @Override
     public void addEditMap(String fileName, boolean update) {
-        String sDate = SDF.format(new Date());
+        Date today = new Date();
         LOGGER.info("Adding/Updating feed files");
         LOGGER.info("Setting added/updated file details");
         Calendar calendar = Calendar.getInstance();
@@ -47,10 +50,10 @@ public class XMLDirectoryService extends AbstractDirectoryService {
         calendar.set(Calendar.MILLISECOND, 0);
         Date tDay = calendar.getTime();
 
-        calendar.add(Calendar.DATE, -1);
+        calendar.add(Calendar.DATE, timeZoneOffset.getDayOffset());
         Date pDay = calendar.getTime();
 
-        long cTime = cHour >= 14 ? tDay.getTime() : pDay.getTime();
+        long cTime = cHour >= timeZoneOffset.getTimeOffset() ? tDay.getTime() : pDay.getTime();
 
         String filePath = fileProperties.getFeedDir() + File.separator + fileName;
         FileDetail fileDetail = new FileDetail();
@@ -70,10 +73,10 @@ public class XMLDirectoryService extends AbstractDirectoryService {
             URI fileURI = new File(StringEscapeUtils.escapeXml11(filePath)).toURI();
             String countQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + ")";
             fileDetail.setJobCount(count(countQuery));
-            String newQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(jobdatum,'" + sDate + "')])";
+            String newQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(jobdatum,'" + SDF.format(today) + "')])";
             int newCount = count(newQuery);
             fileDetail.setNewJob(newCount);
-            String updateQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(date_of_last_change,'" + sDate + "')])";
+            String updateQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(date_of_last_change,'" + SDF.format(today) + "')])";
             int updateCount = count(updateQuery);
             fileDetail.setUpdateJob(updateCount);
             if (newCount > 0 && updateCount > 0) {
@@ -104,7 +107,7 @@ public class XMLDirectoryService extends AbstractDirectoryService {
 
     @Override
     public void generateFileDetail(boolean clean) {
-        String sDate = SDF.format(new Date());
+        Date today = new Date();
         if (clean) {
             LOGGER.info("Clearing map");
             MAP_FILE_DETAILS.clear();
@@ -117,10 +120,10 @@ public class XMLDirectoryService extends AbstractDirectoryService {
         calendar.set(Calendar.MILLISECOND, 0);
         Date tDay = calendar.getTime();
 
-        calendar.add(Calendar.DATE, -1);
+        calendar.add(Calendar.DATE, timeZoneOffset.getDayOffset());
         Date pDay = calendar.getTime();
 
-        long cTime = cHour >= 14 ? tDay.getTime() : pDay.getTime();
+        long cTime = cHour >= timeZoneOffset.getTimeOffset() ? tDay.getTime() : pDay.getTime();
 
         File[] files = new File(fileProperties.getFeedDir()).listFiles(xmlFileFilter);
         if (files == null) {
@@ -143,10 +146,10 @@ public class XMLDirectoryService extends AbstractDirectoryService {
                 URI fileURI = new File(StringEscapeUtils.escapeXml11(file.getAbsolutePath())).toURI();
                 String countQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + ")";
                 fileDetail.setJobCount(count(countQuery));
-                String newQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(jobdatum,'" + sDate + "')])";
+                String newQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(jobdatum,'" + SDF.format(today) + "')])";
                 int newCount = count(newQuery);
                 fileDetail.setNewJob(newCount);
-                String updateQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(date_of_last_change,'" + sDate + "')])";
+                String updateQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(date_of_last_change,'" + SDF.format(today) + "')])";
                 int updateCount = count(updateQuery);
                 fileDetail.setUpdateJob(updateCount);
                 if (newCount > 0 && updateCount > 0) {
@@ -184,5 +187,4 @@ public class XMLDirectoryService extends AbstractDirectoryService {
         }
         return count;
     }
-
 }
