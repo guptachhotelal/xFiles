@@ -1,6 +1,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Propellum - JobLeads File List</title>
+<title>Propellum - ${statusDetail.clientName} File List</title>
 <link rel="shortcut icon" href="images/wings.png">
 <link type="text/css" rel="stylesheet" href="css/bootstrap.min.css" />
 <link type="text/css" rel="stylesheet" href="css/dataTables.bootstrap.min.css" />

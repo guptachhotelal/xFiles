@@ -1,19 +1,24 @@
 package com.filelist.service;
 
+import com.filelist.entity.FeedProperties;
 import com.filelist.entity.FileDetail;
 import com.filelist.utils.exception.FileListException;
+import com.fl.utils.Constants;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Resource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,19 +28,27 @@ public abstract class AbstractDirectoryService implements DirectoryService {
     protected static final Logger LOGGER = LogManager.getLogger(DirectoryService.class.getName());
     public static final ConcurrentMap<String, FileDetail> MAP_FILE_DETAILS = new ConcurrentHashMap<>();
     @Resource
-    private Path feedDir;
+    private FeedProperties fileProperties;
 
     @Override
     public void init() {
+        String sDir = "";
+        if (Constants.CURRENT_DATE.equals(fileProperties.getDirectory())) {
+            Constants.SDF.applyPattern(fileProperties.getDatePattern());
+            sDir = Constants.SDF.format(new Date());
+        }
+
+        final Path feedHome = Paths.get(fileProperties.getFeedHome(), sDir);
         new Thread(() -> {
-            try (WatchService watchService = feedDir.getFileSystem().newWatchService();) {
+            try (WatchService watchService = feedHome.getFileSystem().newWatchService();) {
                 DirectoryWatcher directoryWatcher = new DirectoryWatcher(watchService);
                 Thread thread = new Thread(directoryWatcher, "directoryWatcher");
                 thread.start();
-                feedDir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+                feedHome.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
                 thread.join();
-            } catch (IOException | InterruptedException e) {
-                LOGGER.info("Exception occured in DirectoryService-init " + FileListException.stackTraceToString(e));
+            }
+            catch (IOException | InterruptedException e) {
+                LOGGER.info("Exception occured in AbstractDirectoryService-init " + FileListException.stackTraceToString(e));
             }
         }, "runnerThread").start();
     }
@@ -49,7 +62,7 @@ public abstract class AbstractDirectoryService implements DirectoryService {
     @Override
     public List<FileDetail> getFileDetails() {
         LOGGER.info("Returning list of filedetail from map");
-        return new ArrayList<>(MAP_FILE_DETAILS.values());
+        return new CopyOnWriteArrayList<>(MAP_FILE_DETAILS.values());
     }
 
     @Override
@@ -112,7 +125,8 @@ public abstract class AbstractDirectoryService implements DirectoryService {
                     watchKey.reset();
                     watchKey = watchService.take();
                 }
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 LOGGER.info("Exception occured in DirectoryWatcher-run " + FileListException.stackTraceToString(e));
             }
         }

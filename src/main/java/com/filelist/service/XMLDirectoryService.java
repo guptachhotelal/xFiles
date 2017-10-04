@@ -5,6 +5,7 @@ import com.filelist.entity.FileDetail;
 import com.filelist.entity.TimeZoneOffset;
 import com.filelist.utils.FileConnection;
 import com.filelist.utils.exception.FileListException;
+import com.fl.utils.Constants;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -14,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -25,8 +25,6 @@ import javax.xml.xquery.XQResultSequence;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 public class XMLDirectoryService extends AbstractDirectoryService {
-
-    private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd");
 
     @Resource
     private TimeZoneOffset timeZoneOffset;
@@ -55,7 +53,7 @@ public class XMLDirectoryService extends AbstractDirectoryService {
 
         long cTime = cHour >= timeZoneOffset.getTimeOffset() ? tDay.getTime() : pDay.getTime();
 
-        String filePath = fileProperties.getFeedDir() + File.separator + fileName;
+        String filePath = getFeedPath() + fileName;
         FileDetail fileDetail = new FileDetail();
 
         if (update) {
@@ -68,15 +66,15 @@ public class XMLDirectoryService extends AbstractDirectoryService {
 
         fileDetail.setFilePath(filePath);
         fileDetail.setTaskName(fileName.substring(0, fileName.lastIndexOf(fileProperties.getFeedExtension()) - 1));
-        fileDetail.setServerPath(fileProperties.getServerPath() + fileName);
+        fileDetail.setServerPath(getServerPath() + File.separator);
         try {
             URI fileURI = new File(StringEscapeUtils.escapeXml11(filePath)).toURI();
             String countQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + ")";
             fileDetail.setJobCount(count(countQuery));
-            String newQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(jobdatum,'" + SDF.format(today) + "')])";
+            String newQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(jobdatum,'" + Constants.SDF.format(today) + "')])";
             int newCount = count(newQuery);
             fileDetail.setNewJob(newCount);
-            String updateQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(date_of_last_change,'" + SDF.format(today) + "')])";
+            String updateQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(date_of_last_change,'" + Constants.SDF.format(today) + "')])";
             int updateCount = count(updateQuery);
             fileDetail.setUpdateJob(updateCount);
             if (newCount > 0 && updateCount > 0) {
@@ -125,10 +123,7 @@ public class XMLDirectoryService extends AbstractDirectoryService {
 
         long cTime = cHour >= timeZoneOffset.getTimeOffset() ? tDay.getTime() : pDay.getTime();
 
-        File[] files = new File(fileProperties.getFeedDir()).listFiles(xmlFileFilter);
-        if (files == null) {
-            return;
-        }
+        File[] files = new File(getFeedPath()).listFiles(xmlFileFilter);
         LOGGER.info("Adding file details in map");
         for (int i = 0; i < files.length; i++) {
             File file = files[i];
@@ -141,15 +136,15 @@ public class XMLDirectoryService extends AbstractDirectoryService {
             String fileName = file.getName();
 
             fileDetail.setTaskName(fileName.substring(0, fileName.lastIndexOf(fileProperties.getFeedExtension()) - 1));
-            fileDetail.setServerPath(fileProperties.getServerPath() + fileName);
+            fileDetail.setServerPath(getServerPath() + fileName);
             try {
                 URI fileURI = new File(StringEscapeUtils.escapeXml11(file.getAbsolutePath())).toURI();
                 String countQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + ")";
                 fileDetail.setJobCount(count(countQuery));
-                String newQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(jobdatum,'" + SDF.format(today) + "')])";
+                String newQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(jobdatum,'" + Constants.SDF.format(today) + "')])";
                 int newCount = count(newQuery);
                 fileDetail.setNewJob(newCount);
-                String updateQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(date_of_last_change,'" + SDF.format(today) + "')])";
+                String updateQuery = "count(doc(\"" + fileURI + "\")/" + fileProperties.getTagLadder() + "[contains(date_of_last_change,'" + Constants.SDF.format(today) + "')])";
                 int updateCount = count(updateQuery);
                 fileDetail.setUpdateJob(updateCount);
                 if (newCount > 0 && updateCount > 0) {
@@ -186,5 +181,23 @@ public class XMLDirectoryService extends AbstractDirectoryService {
             count = Integer.parseInt(result.getItemAsString(null));
         }
         return count;
+    }
+
+    private String getFeedPath() {
+        String sDir = "";
+        if (Constants.CURRENT_DATE.equals(fileProperties.getDirectory())) {
+            Constants.SDF.applyPattern(fileProperties.getDatePattern());
+            sDir = Constants.SDF.format(new Date()) + File.separator;
+        }
+        return fileProperties.getFeedHome() + sDir;
+    }
+
+    private String getServerPath() {
+        String sDir = "";
+        if (Constants.CURRENT_DATE.equals(fileProperties.getDirectory())) {
+            Constants.SDF.applyPattern(fileProperties.getDatePattern());
+            sDir = Constants.SDF.format(new Date()) + "/";
+        }
+        return fileProperties.getServerHome() + sDir;
     }
 }

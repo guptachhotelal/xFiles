@@ -5,17 +5,32 @@ import java.io.Serializable;
 public final class FeedProperties implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    private String feedDir;
+    private String feedHome;
+    private String directory;
+    private String datePattern;
     private String feedExtension;
-    private String serverPath;
+    private String serverHome;
     private String tagLadder;
 
-    public String getFeedDir() {
-        return feedDir;
+    public FeedProperties(String feedHome, String directory) {
+        this.feedHome = feedHome;
+        this.directory = directory;
     }
 
-    public void setFeedDir(String feedDir) {
-        this.feedDir = feedDir;
+    public String getDatePattern() {
+        return datePattern;
+    }
+
+    public void setDatePattern(String datePattern) {
+        this.datePattern = datePattern;
+    }
+
+    public String getFeedHome() {
+        return feedHome;
+    }
+
+    public String getDirectory() {
+        return directory;
     }
 
     public String getFeedExtension() {
@@ -26,12 +41,12 @@ public final class FeedProperties implements Serializable {
         this.feedExtension = feedExtension;
     }
 
-    public String getServerPath() {
-        return serverPath;
+    public String getServerHome() {
+        return serverHome;
     }
 
-    public void setServerPath(String serverPath) {
-        this.serverPath = serverPath;
+    public void setServerHome(String serverHome) {
+        this.serverHome = serverHome;
     }
 
     public String getTagLadder() {
@@ -44,6 +59,6 @@ public final class FeedProperties implements Serializable {
 
     @Override
     public String toString() {
-        return "FeedProperties [feedDir=" + feedDir + ", feedExtension=" + feedExtension + ", serverPath=" + serverPath + ", tagLadder=" + tagLadder + "]";
+        return "FeedProperties [feedHome=" + feedHome + ", directory=" + directory + ", datePattern=" + datePattern + ", feedExtension=" + feedExtension + ", serverHome=" + serverHome + ", tagLadder=" + tagLadder + "]";
     }
 }

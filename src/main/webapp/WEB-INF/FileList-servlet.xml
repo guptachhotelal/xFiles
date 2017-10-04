@@ -26,13 +26,11 @@
         </mvc:message-converters>
     </mvc:annotation-driven>
 
-    <bean id="localeResolver"
-          class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
+    <bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
         <property name="defaultLocale" value="en" />
     </bean>
 
-    <bean id="messageSource"
-          class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
         <property name="basename" value="classpath:messages" />
         <property name="defaultEncoding" value="UTF-8" />
     </bean>
@@ -48,33 +46,33 @@
         </bean>
     </mvc:interceptors>
 
+
     <bean name="timeZoneOffset" class="com.filelist.entity.TimeZoneOffset">
         <constructor-arg name="dayOffset" value="-1" />
         <constructor-arg name="timeOffset" value="14.0" />
     </bean>
+
     <bean name="statusDetail" class="com.filelist.entity.StatusDetail">
         <constructor-arg name="clientName" value="JobLeads" />
     </bean>
 
     <bean name="fileProperties" class="com.filelist.entity.FeedProperties">
-        <property name="feedDir"  value="C:/apache-tomcat-7.0.47/webapps/xmlFilesDirectory" />
+        <constructor-arg name="feedHome" value="C:/apache-tomcat-7.0.47/webapps/xmlFileDir/" />
+        <constructor-arg name="directory" value="" />
         <property name="feedExtension" value="xml" />
-        <property name="serverPath" value="/xmlFilesDirectory/" />
+        <property name="serverHome" value="/xmlFileDir/" />
         <property name="tagLadder" value="root/resultlist/job" />
     </bean>
 
     <bean class="com.filelist.utils.FileTypeFilter" name="xmlFileFilter" />
-    <bean name="feedDir" class="java.nio.file.Paths" factory-method="get">
-        <constructor-arg value="file:///C:/apache-tomcat-7.0.47/webapps/xmlFilesDirectory" />
-    </bean>
-    
-    <bean class="com.filelist.utils.FileConnection" name="fileConnection"  factory-method="getFileConnection" />
+    <bean class="com.filelist.utils.FileConnection" name="fileConnection" factory-method="getFileConnection" />
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="prefix" value="/WEB-INF/jsp/" />
         <property name="suffix" value=".jsp" />
+        <property name="contentType" value="text/html;charset=UTF-8" />
     </bean>
+    <bean class="com.filelist.service.AbstractDirectoryService" abstract="true" name="ads" />
 
-    <bean class="com.filelist.service.AbstractDirectoryService" abstract="true"  name="ads" />
     <bean class="com.filelist.service.XMLDirectoryService" name="directoryService" parent="ads" />
 
     <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"> 

@@ -58,6 +58,7 @@ public class FileListController {
 
     @RequestMapping(value = "filelist.htm", method = RequestMethod.GET)
     public String listFiles(final HttpServletRequest request, final HttpServletResponse response, final ModelMap map) {
+
         Locale locale = RequestContextUtils.getLocaleResolver(request).resolveLocale(request);
         LOGGER.info("Listing files");
         if (!watching) {
@@ -98,7 +99,6 @@ public class FileListController {
             try {
                 File file = new File(fileDetail.getFilePath());
                 if (!file.exists()) {
-                    //					fileDetails.remove(fileDetail);
                     rList.add(fileDetail);
                     continue;
                 }
@@ -106,7 +106,9 @@ public class FileListController {
                 BasicFileAttributes view = Files.getFileAttributeView(path, BasicFileAttributeView.class).readAttributes();
                 long fileCreateTime = view.creationTime().to(TimeUnit.MILLISECONDS);
                 long lastModified = file.lastModified();
-                jobCount += fileDetail.getJobCount();
+                if (fileDetail.getJobCount() > -1) {
+                    jobCount += fileDetail.getJobCount();
+                }
                 newJob += fileDetail.getNewJob();
                 updateJob += fileDetail.getUpdateJob();
                 if (fileDetail.getJobCount() == 0) {
@@ -147,6 +149,7 @@ public class FileListController {
         map.addAttribute("lang", locale.getLanguage());
         LOGGER.info("Returning view name filelist.jsp");
         return "filelist";
+
     }
 
     @RequestMapping(value = "fetchlist.json", method = RequestMethod.POST)
