@@ -235,7 +235,7 @@ function formatDate(data) {
     minutes = minutes < 10 ? "0" + minutes : minutes;
     seconds = seconds < 10 ? "0" + seconds : seconds;
     var strTime = hours + ":" + minutes + ":" + seconds + " " + ampm;
-    return (date.getDate() < 10 ? "0" + date.getDate() : date.getDate()) + "-" + (date.getMonth() < 10 ? "0" + (date.getMonth() + 1) : (date.getMonth() + 1)) + "-" + date.getFullYear() + " " + strTime;
+    return (date.getDate() < 10 ? "0" + date.getDate() : date.getDate()) + "-" + ((date.getMonth() + 1) < 10 ? "0" + (date.getMonth() + 1) : (date.getMonth() + 1)) + "-" + date.getFullYear() + " " + strTime;
 }
 
 function autoRefresh(intvl) {
